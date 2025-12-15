@@ -2,8 +2,11 @@ name: Super-Linter
 
 on:
   push:
+    branches: ["**"]
   pull_request:
+    branches: ["**"]
 
+# Minimal permissions (helps Zizmor/Checkov) + allows status updates (prevents 403)
 permissions:
   contents: read
   statuses: write
@@ -12,12 +15,24 @@ jobs:
   super-lint:
     name: Lint code base
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        # Pin to a specific version (more security-friendly than just @v4)
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
 
       - name: Run Super-Linter
-        uses: super-linter/super-linter@v8
+        # Keep full linter suite enabled (including zizmor + prettier)
+        uses: super-linter/super-linter@v8.0.0
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # Optional: useful in many repos, but you can remove if you prefer.
+          # Shows which files were changed vs validating everything every time.
+          VALIDATE_ALL_CODEBASE: true
+
+          # Optional: better log visibility
+          LOG_LEVEL: INFO
